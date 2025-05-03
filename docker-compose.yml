@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=mongo
+      - PORT=3000
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      app_net:
+        ipv4_address: 172.20.0.10 # Static IP for backend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app_net
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  mongodb_data:
