@@ -1,0 +1,41 @@
+name: CD - Deploy to VM
+
+on:
+  workflow_run:
+    workflows: ["CI/CD - Build and Push Docker Images"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: SSH into server and deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.VM_USER }}/mern-app
+
+            echo "Pulling latest images..."
+            docker-compose pull
+
+            echo "Rebuilding and restarting containers..."
+            docker-compose up -d
+
+            echo "Waiting for NGINX to stabilize..."
+            sleep 15
+
+            echo "Running health check..."
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" https://${{ secrets.DOMAIN_NAME }})
+            if [ "$STATUS" == "502" ]; then
+              echo "Health check failed (502 Bad Gateway). Rolling back..."
+              docker-compose down
+              exit 1
+            else
+              echo "Health check passed! App is live at https://${{ secrets.DOMAIN_NAME }}"
+            fi
