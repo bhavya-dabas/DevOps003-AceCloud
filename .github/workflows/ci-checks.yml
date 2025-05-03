@@ -1,9 +1,16 @@
 name: CI - Lint and Test
 
 on:
-  pull_request:
   push:
     branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
       - main
 
 jobs:
