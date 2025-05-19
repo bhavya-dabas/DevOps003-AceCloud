@@ -161,9 +161,7 @@ Why Distroless?
 Minimal Footprint: Distroless images contain only the application and its runtime dependencies, excluding shells, package managers, and unnecessary tools.
 Security: Reduced attack surface by eliminating utilities that could be exploited.
 Size Reduction:
-Backend: Reduced from ~155MB (node:16-alpine) to ~60MB (gcr.io/distroless/nodejs:16).
-Frontend: Uses nginx:alpine (~48MB) due to unavailability of gcr.io/distroless/nginx; still optimized from 51.5MB.
-
+Backend: Reduced from ~155MB (node:16-alpine) to ~135MB (gcr.io/distroless/nodejs:16).
 
 
 Implementation
